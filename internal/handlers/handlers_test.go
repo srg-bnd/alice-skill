@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,6 +16,10 @@ func TestWebhook(t *testing.T) {
 			},
 			"version": "1.0"
 	}`
+
+	handler := http.HandlerFunc(Webhook)
+	srv := httptest.NewServer(handler)
+	defer srv.Close()
 
 	testCases := []struct {
 		method       string
@@ -29,14 +34,16 @@ func TestWebhook(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.method, func(t *testing.T) {
-			r := httptest.NewRequest(tc.method, "/", nil)
-			w := httptest.NewRecorder()
+			req := resty.New().R()
+			req.Method = tc.method
+			req.URL = srv.URL
 
-			Webhook(w, r)
+			resp, err := req.Send()
+			assert.NoError(t, err, "error making HTTP request")
 
-			assert.Equal(t, tc.expectedCode, w.Code, "The response code does not match the expected one")
+			assert.Equal(t, tc.expectedCode, resp.StatusCode(), "Response code didn't match expected")
 			if tc.expectedBody != "" {
-				assert.JSONEq(t, tc.expectedBody, w.Body.String(), "The response body does not match the expected one")
+				assert.JSONEq(t, tc.expectedBody, string(resp.Body()))
 			}
 		})
 	}
