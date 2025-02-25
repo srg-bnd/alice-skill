@@ -10,3 +10,7 @@ New [Yandex Alice](https://yandex.ru/dev/dialogs/alice/) skill.
 ### Flags
 
 - a: address and port to run server (default `:8080`)
+
+### Envs
+
+- RUN_ADDR: address and port to run server
