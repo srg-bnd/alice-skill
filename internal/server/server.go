@@ -17,6 +17,14 @@ func NewServer() *Server {
 }
 
 // Init & run server
-func (s *Server) Run() error {
-	return http.ListenAndServe(defaultHost, http.HandlerFunc(handlers.Webhook))
+func (s *Server) Run(addr string) error {
+	return http.ListenAndServe(GetAddr(addr), http.HandlerFunc(handlers.Webhook))
+}
+
+func GetAddr(addr string) string {
+	if len(addr) != 0 {
+		return addr
+	} else {
+		return defaultHost
+	}
 }

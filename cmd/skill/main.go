@@ -1,7 +1,9 @@
 // Yandex Alice Skill
 package main
 
-import "github.com/srg-bnd/alice-skill/internal/server"
+import (
+	"github.com/srg-bnd/alice-skill/internal/server"
+)
 
 type App struct {
 	server *server.Server
@@ -14,7 +16,9 @@ func NewApp() *App {
 }
 
 func main() {
-	if err := NewApp().server.Run(); err != nil {
+	parseFlags()
+
+	if err := NewApp().server.Run(flagRunAddr); err != nil {
 		panic(err)
 	}
 }
