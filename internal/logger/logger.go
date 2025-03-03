@@ -21,7 +21,7 @@ func Initialize(level string) error {
 	}
 	// create a new logger configuration
 	cfg := zap.NewProductionConfig()
-	// устанавливаем уровень
+	// set level
 	cfg.Level = lvl
 	// create a logger based on the configuration
 	zl, err := cfg.Build()
