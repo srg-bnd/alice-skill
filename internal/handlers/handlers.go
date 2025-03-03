@@ -1,12 +1,18 @@
 // Handlers
 package handlers
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/srg-bnd/alice-skill/internal/logger"
+	"go.uber.org/zap"
+)
 
 // HTTP request handler
 func Webhook(w http.ResponseWriter, r *http.Request) {
+	// only POST-requests
 	if r.Method != http.MethodPost {
-		// only POST-requests
+		logger.Log.Debug("got request with bad method", zap.String("method", r.Method))
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
@@ -22,4 +28,5 @@ func Webhook(w http.ResponseWriter, r *http.Request) {
         "version": "1.0"
       }
     `))
+	logger.Log.Debug("sending HTTP 200 response")
 }
