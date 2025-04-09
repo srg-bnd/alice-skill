@@ -39,7 +39,7 @@ func TestGzipCompression(t *testing.T) {
 	}`
 	successBody := `{
 			"response": {
-					"text": "Sorry, I can't do anything yet"
+					"text": "There are no new messages for you."
 			},
 			"version": "1.0"
 	}`

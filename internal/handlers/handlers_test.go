@@ -14,13 +14,6 @@ func TestWebhook(t *testing.T) {
 	srv := httptest.NewServer(handler)
 	defer srv.Close()
 
-	successBody := `{
-        "response": {
-            "text": "Sorry, I can't do anything yet"
-        },
-        "version": "1.0"
-    }`
-
 	testCases := []struct {
 		name         string
 		method       string
@@ -62,9 +55,9 @@ func TestWebhook(t *testing.T) {
 		{
 			name:         "method_post_success",
 			method:       http.MethodPost,
-			body:         `{"request": {"type": "SimpleUtterance", "command": "sudo do something"}, "version": "1.0"}`,
+			body:         `{"request": {"type": "SimpleUtterance", "command": "sudo do something"}, "session": {"new": true}, "version": "1.0"}`,
 			expectedCode: http.StatusOK,
-			expectedBody: successBody,
+			expectedBody: `The exact time .* hours, .* minutes. There are no new messages for you.`,
 		},
 	}
 
@@ -84,7 +77,7 @@ func TestWebhook(t *testing.T) {
 
 			assert.Equal(t, tc.expectedCode, resp.StatusCode(), "Response code didn't match expected")
 			if tc.expectedBody != "" {
-				assert.JSONEq(t, tc.expectedBody, string(resp.Body()))
+				assert.Regexp(t, tc.expectedBody, string(resp.Body()))
 			}
 		})
 	}

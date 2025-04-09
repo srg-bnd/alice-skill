@@ -3,7 +3,9 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -29,6 +31,20 @@ func Webhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	text := "There are no new messages for you."
+	if req.Session.New {
+		tz, err := time.LoadLocation(req.Timezone)
+		if err != nil {
+			logger.Log.Debug("cannot parse timezone")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		now := time.Now().In(tz)
+		hour, minute, _ := now.Clock()
+		text = fmt.Sprintf("The exact time %d hours, %d minutes. %s", hour, minute, text)
+	}
+
 	if req.Request.Type != models.TypeSimpleUtterance {
 		logger.Log.Debug("unsupported request type", zap.String("type", req.Request.Type))
 		w.WriteHeader(http.StatusUnprocessableEntity)
@@ -37,7 +53,7 @@ func Webhook(w http.ResponseWriter, r *http.Request) {
 
 	resp := models.Response{
 		Response: models.ResponsePayload{
-			Text: "Sorry, I can't do anything yet",
+			Text: text,
 		},
 		Version: "1.0",
 	}

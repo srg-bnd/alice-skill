@@ -7,8 +7,15 @@ const (
 
 // https://yandex.ru/dev/dialogs/alice/doc/request.html
 type Request struct {
-	Request SimpleUtterance `json:"request"`
-	Version string          `json:"version"`
+	Timezone string          `json:"timezone"`
+	Request  SimpleUtterance `json:"request"`
+	Session  Session         `json:"session"`
+	Version  string          `json:"version"`
+}
+
+// Session
+type Session struct {
+	New bool `json:"new"`
 }
 
 // Command from Request
