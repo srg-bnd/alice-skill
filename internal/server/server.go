@@ -11,10 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const defaultHost = `:8080`
-
-type Server struct {
-}
+type Server struct{}
 
 func NewServer() *Server {
 	return &Server{}
