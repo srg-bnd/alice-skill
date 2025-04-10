@@ -15,7 +15,13 @@ type Request struct {
 
 // Session
 type Session struct {
-	New bool `json:"new"`
+	New  bool `json:"new"`
+	User User
+}
+
+// User
+type User struct {
+	UserID string
 }
 
 // Command from Request

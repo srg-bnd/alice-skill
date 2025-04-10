@@ -1,4 +1,5 @@
-package gzip
+// gzip logic
+package main
 
 import (
 	"compress/gzip"

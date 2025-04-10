@@ -2,28 +2,60 @@
 package main
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/srg-bnd/alice-skill/internal/logger"
-	"github.com/srg-bnd/alice-skill/internal/server"
+	"go.uber.org/zap"
 )
 
-type App struct {
-	server *server.Server
+// gzip-middleware for http-server
+func gzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ow := w
+
+		acceptEncoding := r.Header.Get("Accept-Encoding")
+		supportsGzip := strings.Contains(acceptEncoding, "gzip")
+		if supportsGzip {
+			cw := NewCompressWriter(w)
+			ow = cw
+			defer cw.Close()
+		}
+
+		contentEncoding := r.Header.Get("Content-Encoding")
+		sendsGzip := strings.Contains(contentEncoding, "gzip")
+		if sendsGzip {
+			cr, err := NewCompressReader(r.Body)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			r.Body = cr
+			defer cr.Close()
+		}
+
+		h.ServeHTTP(ow, r)
+	}
 }
 
-func NewApp() *App {
-	return &App{
-		server: server.NewServer(),
+// logic for running the app
+func run() error {
+	if err := logger.Initialize(flagLogLevel); err != nil {
+		return err
 	}
+
+	// creating an instance of the app, so far without the external dependency of the message store
+	appInstance := newApp(nil)
+
+	logger.Log.Info("Running server", zap.String("address", flagRunAddr))
+	// wrap the webhook handler in middleware with logging and gzip support
+	return http.ListenAndServe(flagRunAddr, logger.RequestLogger(gzipMiddleware(appInstance.webhook)))
 }
 
 func main() {
 	parseFlags()
 
-	if err := logger.Initialize(flagLogLevel); err != nil {
-		panic(err)
-	}
-
-	if err := NewApp().server.Run(flagRunAddr); err != nil {
+	if err := run(); err != nil {
 		panic(err)
 	}
 }
