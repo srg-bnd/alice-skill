@@ -24,15 +24,7 @@ func NewServer() *Server {
 func (s *Server) Run(addr string) error {
 
 	logger.Log.Info("Running server", zap.String("address", addr))
-	return http.ListenAndServe(GetAddr(addr), logger.RequestLogger(gzipMiddleware(handlers.Webhook)))
-}
-
-func GetAddr(addr string) string {
-	if len(addr) != 0 {
-		return addr
-	} else {
-		return defaultHost
-	}
+	return http.ListenAndServe(addr, logger.RequestLogger(gzipMiddleware(handlers.Webhook)))
 }
 
 func gzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
