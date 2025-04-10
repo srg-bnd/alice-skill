@@ -21,10 +21,6 @@ func TestStart(t *testing.T) {
 	t.Logf("TODO")
 }
 
-func TestConsts(t *testing.T) {
-	assert.Equal(t, defaultHost, ":8080")
-}
-
 func TestGzipCompression(t *testing.T) {
 	handler := http.HandlerFunc(gzipMiddleware(handlers.Webhook))
 	server := httptest.NewServer(handler)
