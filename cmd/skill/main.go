@@ -2,10 +2,14 @@
 package main
 
 import (
+	"database/sql"
 	"net/http"
 	"strings"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
+
 	"github.com/srg-bnd/alice-skill/internal/logger"
+	"github.com/srg-bnd/alice-skill/internal/store/pg"
 	"go.uber.org/zap"
 )
 
@@ -44,8 +48,13 @@ func run() error {
 		return err
 	}
 
+	conn, err := sql.Open("pgx", flagDatabaseURI)
+	if err != nil {
+		return err
+	}
+
 	// creating an instance of the app, so far without the external dependency of the message store
-	appInstance := newApp(nil)
+	appInstance := newApp(pg.NewStore(conn))
 
 	logger.Log.Info("Running server", zap.String("address", flagRunAddr))
 	// wrap the webhook handler in middleware with logging and gzip support
