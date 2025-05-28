@@ -2,8 +2,12 @@ package store
 
 import (
 	"context"
+	"errors"
 	"time"
 )
+
+// ErrConflict indicates a data conflict in the storage.
+var ErrConflict = errors.New("data conflict")
 
 // Store
 type Store interface {
@@ -15,6 +19,8 @@ type Store interface {
 	GetMessage(ctx context.Context, id int64) (*Message, error)
 	// SaveMessage
 	SaveMessage(ctx context.Context, userID string, msg Message) error
+	// RegisterUser registers a new user
+	RegisterUser(ctx context.Context, userID, username string) error
 }
 
 // Message

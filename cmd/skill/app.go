@@ -3,6 +3,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -76,7 +77,7 @@ func (a *app) webhook(w http.ResponseWriter, r *http.Request) {
 
 		text = "The message was sent successfully"
 
-	case strings.HasPrefix(req.Request.Command, "Прочитай"):
+	case strings.HasPrefix(req.Request.Command, "Read it"):
 		messageIndex := 0 // parseReadCommand(req.Request.Command)
 
 		messages, err := a.store.ListMessages(ctx, req.Session.User.UserID)
@@ -100,7 +101,20 @@ func (a *app) webhook(w http.ResponseWriter, r *http.Request) {
 
 			text = fmt.Sprintf("Message from %s, sent %s: %s", message.Sender, message.Time, message.Payload)
 		}
+	case strings.HasPrefix(req.Request.Command, "Register"):
+		username := parseRegisterCommand(req.Request.Command)
 
+		err := a.store.RegisterUser(ctx, req.Session.User.UserID, username)
+		if err != nil && !errors.Is(err, store.ErrConflict) {
+			logger.Log.Debug("cannot register user", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		text = fmt.Sprintf("You have successfully registered under the name %s", username)
+		if errors.Is(err, store.ErrConflict) {
+			text = "Sorry, that name is already taken. Try something else."
+		}
 	default:
 		messages, err := a.store.ListMessages(ctx, req.Session.User.UserID)
 		if err != nil {
@@ -144,4 +158,9 @@ func (a *app) webhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	logger.Log.Debug("sending HTTP 200 response")
+}
+
+// Returns the username from the command
+func parseRegisterCommand(command string) string {
+	return "TODO"
 }

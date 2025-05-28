@@ -3,8 +3,11 @@ package pg
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/srg-bnd/alice-skill/internal/store"
 )
 
@@ -117,6 +120,26 @@ func (s Store) SaveMessage(ctx context.Context, userID string, msg store.Message
         VALUES
         ($1, $2, $3, $4);
     `, msg.Sender, userID, msg.Payload, time.Now())
+
+	return err
+}
+
+func (s Store) RegisterUser(ctx context.Context, userID, username string) error {
+	// adds a new user record
+	_, err := s.conn.ExecContext(ctx, `
+        INSERT INTO users
+        (id, username)
+        VALUES
+        ($1, $2);
+    `, userID, username)
+
+	if err != nil {
+		// verifies that an error indicates a potential data integrity violation.
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
+			err = store.ErrConflict
+		}
+	}
 
 	return err
 }
